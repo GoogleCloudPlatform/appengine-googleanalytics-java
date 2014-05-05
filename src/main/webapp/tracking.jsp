@@ -9,6 +9,8 @@
 <body>
 
 <%
+    // Place your Google Anlaytics tracking id here to test event tracking to your own account.
+    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId("UA-XXXX-Y");
     GoogleAnalyticsTracking.trackEventToGoogleAnalytics("Error", "Payment", "Amount", "100");
 %>
 <p>Posted a tracking event to Google Analytics.</p>

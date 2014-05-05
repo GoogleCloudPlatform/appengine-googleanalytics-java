@@ -31,13 +31,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class GoogleAnalyticsTracking {
 
-  // Set this to the specific Google Analytics Tracking Id for your application.
-  private static final String GA_TRACKING_ID = "UA-49801701-2";
   private static final URL GA_URL_ENDPOINT = getGoogleAnalyticsEndpoint();
   private static final HTTPHeader CONTENT_TYPE_HEADER =
       new HTTPHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -50,12 +48,20 @@ public class GoogleAnalyticsTracking {
     }
   }
 
+  private static String gaTrackingId = null;
+
+  public static void setGoogleAnalyticsTrackingId(String newgaTrackingId) {
+    gaTrackingId = newgaTrackingId;
+  }
+
+
   private static URLFetchService urlFetchService = URLFetchServiceFactory.getURLFetchService();
 
   // Used to override the existing factory with perhaps a mock one for testing.
   public static void setUrlFetchService(URLFetchService newUrlFetchService) {
     urlFetchService = newUrlFetchService;
   }
+
   /**
    * Posts an Event Tracking message to Google Analytics.
    *
@@ -68,9 +74,12 @@ public class GoogleAnalyticsTracking {
    */
   public static boolean trackEventToGoogleAnalytics(
       String category, String action, String label, String value) throws IOException {
-    Map<String, String> map = new HashMap<>();
+    if (gaTrackingId == null) {
+      throw new IllegalStateException("Null value");
+    }
+    Map<String, String> map = new LinkedHashMap<>();
     map.put("v", "1");                      // Version.
-    map.put("tid", GA_TRACKING_ID);         // Tracking ID / Web property / Property ID
+    map.put("tid", gaTrackingId);           // Tracking ID / Web property / Property ID
     map.put("cid", "555");                  // Anonymous Client ID.
     map.put("t", "event");                  // Event hit type.
     map.put("ec", encode(category, true));

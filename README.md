@@ -6,10 +6,14 @@ Integrating App Engine with Google Analytics
 
 - Register for [Google Analytics](http://www.google.com/analytics/), create
 an application, and get a tracking id.
-- Set the *GA_TRACKING_ID* constant in GoogleAnalyticsTracking.java to the
-Google Analytics tracking id of your application.
-- Set the *application* parameter in the appengine-web.xml file to be your
-App Engine app id.
+- Call *setGoogleAnalyticsTrackingId()* once with the Google Analytics tracking
+id of your application before making calls to *trackEventToGoogleAnalytics()*
+to tracking events.
+
+## Running the demo
+
+- Modify the *tracking.jsp* to use your own tracking id if you wish to test
+tracking events to your own account. 
 
 ## Contributing changes
 

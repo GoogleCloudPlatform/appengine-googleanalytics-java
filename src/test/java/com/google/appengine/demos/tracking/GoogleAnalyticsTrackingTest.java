@@ -29,15 +29,52 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.mockito.ArgumentCaptor;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 
 public class GoogleAnalyticsTrackingTest {
 
+  private static final String TEST_GA_TRACKING_ID = "UA-XXXX-Y";
+
   @Test
-  public void testTrackEventSimple() throws IOException {
+  public void testTrackEventBasic() throws IOException {
+    HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
+    URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
+    GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
+    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId(TEST_GA_TRACKING_ID);
+
+    when(mockUrlFetchService.fetch(any(HTTPRequest.class))).thenReturn(mockHTTPResponse);
+    when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+    assertTrue(GoogleAnalyticsTracking
+        .trackEventToGoogleAnalytics("Error", "Payment", "Amount", "100"));
+  }
+
+  @Test
+  public void testTrackEventVerifyParameters() throws IOException {
+    ArgumentCaptor<HTTPRequest> httpRequestCaptor = ArgumentCaptor.forClass(HTTPRequest.class);
+    HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
+    URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
+    GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
+    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId(TEST_GA_TRACKING_ID);
+
+    when(mockUrlFetchService.fetch(httpRequestCaptor.capture())).thenReturn(mockHTTPResponse);
+    when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+    assertTrue(GoogleAnalyticsTracking
+        .trackEventToGoogleAnalytics("Error", "Payment", "Amount", "100"));
+    String payload = new String(httpRequestCaptor.getValue().getPayload(),
+        StandardCharsets.UTF_8.name());
+    assertEquals("v=1&tid=UA-XXXX-Y&cid=555&t=event&ec=Error&ea=Payment&el=Amount&ev=100",
+        payload);
+  }
+
+  @Test
+  public void testTrackEventMissingGATrackingid() throws IOException {
     HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
     URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
     GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
@@ -45,8 +82,14 @@ public class GoogleAnalyticsTrackingTest {
     when(mockUrlFetchService.fetch(any(HTTPRequest.class))).thenReturn(mockHTTPResponse);
     when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
-    GoogleAnalyticsTracking.trackEventToGoogleAnalytics("Error", "Payment", "Amount", "100");
-    assertEquals(HttpURLConnection.HTTP_OK, mockHTTPResponse.getResponseCode());
+    try {
+      GoogleAnalyticsTracking.trackEventToGoogleAnalytics(null, "Payment", "Amount", "100");
+      // Should not get here.
+      fail();
+    }
+    catch (IllegalStateException e) {
+      assertEquals("Null value", e.getMessage());
+    }
   }
 
   @Test
@@ -54,6 +97,7 @@ public class GoogleAnalyticsTrackingTest {
     HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
     URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
     GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
+    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId(TEST_GA_TRACKING_ID);
 
     when(mockUrlFetchService.fetch(any(HTTPRequest.class))).thenReturn(mockHTTPResponse);
     when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
@@ -73,6 +117,7 @@ public class GoogleAnalyticsTrackingTest {
     HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
     URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
     GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
+    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId(TEST_GA_TRACKING_ID);
 
     when(mockUrlFetchService.fetch(any(HTTPRequest.class))).thenReturn(mockHTTPResponse);
     when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
