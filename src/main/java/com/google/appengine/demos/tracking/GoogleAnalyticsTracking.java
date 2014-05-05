@@ -50,6 +50,12 @@ public class GoogleAnalyticsTracking {
     }
   }
 
+  private static URLFetchService urlFetchService = URLFetchServiceFactory.getURLFetchService();
+
+  // Used to override the existing factory with perhaps a mock one for testing.
+  public static void setUrlFetchService(URLFetchService newUrlFetchService) {
+    urlFetchService = newUrlFetchService;
+  }
   /**
    * Posts an Event Tracking message to Google Analytics.
    *
@@ -74,7 +80,6 @@ public class GoogleAnalyticsTracking {
 
     String postData = getPostData(map);
 
-    URLFetchService urlFetchService = URLFetchServiceFactory.getURLFetchService();
     HTTPRequest request = new HTTPRequest(GA_URL_ENDPOINT, HTTPMethod.POST);
     request.addHeader(CONTENT_TYPE_HEADER);
     request.setPayload(postData.getBytes());
