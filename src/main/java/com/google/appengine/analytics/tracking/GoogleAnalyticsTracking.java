@@ -60,18 +60,22 @@ public class GoogleAnalyticsTracking {
     this.gaTrackingId = gaTrackingId;
   }
 
-  public void setGoogleAnalyticsClientId(String gaClientId) throws IOException {
+  public GoogleAnalyticsTracking setGoogleAnalyticsClientId(String gaClientId)
+      throws IOException {
     if (gaClientId == null) {
       throw new IllegalArgumentException("Can't set gaClientId to a null value.");
     }
     this.gaClientId = gaClientId;
+    return this;
   }
 
-  public void setUrlFetchService(URLFetchService urlFetchService) throws IOException {
+  public GoogleAnalyticsTracking setUrlFetchService(URLFetchService urlFetchService)
+      throws IOException {
     if (urlFetchService == null) {
       throw new IllegalArgumentException("Can't set urlFetchService to a null value.");
     }
     this.urlFetchService = urlFetchService;
+    return this;
   }
 
   /**
@@ -84,7 +88,7 @@ public class GoogleAnalyticsTracking {
    * @return true if the call succeeded, otherwise false
    * @exception IOException if the URL could not be posted to
    */
-  public boolean trackEventToGoogleAnalytics(
+  public int trackEventToGoogleAnalytics(
       String category, String action, String label, String value) throws IOException {
     Map<String, String> map = new LinkedHashMap<>();
     map.put("v", "1");             // Version.
@@ -96,18 +100,16 @@ public class GoogleAnalyticsTracking {
     map.put("el", encode(label, false));
     map.put("ev", encode(value, false));
 
-    String postData = getPostData(map);
-
     HTTPRequest request = new HTTPRequest(GA_URL_ENDPOINT, HTTPMethod.POST);
     request.addHeader(CONTENT_TYPE_HEADER);
-    request.setPayload(postData.getBytes());
+    request.setPayload(getPostData(map));
 
     HTTPResponse httpResponse = urlFetchService.fetch(request);
     // Return True if the call was successful.
-    return httpResponse.getResponseCode() == HttpURLConnection.HTTP_OK;
+    return httpResponse.getResponseCode();
   }
 
-  private String getPostData(Map<String, String> map) {
+  private static byte[] getPostData(Map<String, String> map) {
     StringBuilder sb = new StringBuilder();
     for (Map.Entry<String, String> entry : map.entrySet()) {
       sb.append(entry.getKey());
@@ -118,10 +120,10 @@ public class GoogleAnalyticsTracking {
     if (sb.length() > 0) {
       sb.setLength(sb.length() - 1); // Remove the trailing &.
     }
-    return sb.toString();
+    return sb.toString().getBytes(StandardCharsets.UTF_8);
   }
 
-  private String encode(String value, boolean required)
+  private static String encode(String value, boolean required)
       throws UnsupportedEncodingException {
     if (value == null) {
       if (required) {

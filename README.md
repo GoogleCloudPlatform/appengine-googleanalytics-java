@@ -6,11 +6,11 @@ Integrating App Engine with Google Analytics
 
 - Register for [Google Analytics](http://www.google.com/analytics/), create
 an application, and get a tracking id.
-- Use that tracking id when you are Instantiating a *GoogleAnalyticsTracking* object.
+- Use that tracking id when you are Instantiating a `GoogleAnalyticsTracking` object.
 
 ## Running the demo
 
-Requires [Apache Maven](http://maven.apache.org) 3.0 or greater, and JDK 6+ in order to run.
+Requires [Apache Maven](http://maven.apache.org) 3.0 or greater, and JDK 7+ in order to run.
 
 - Modify the *tracking.jsp* to use your own tracking id if you wish to test
 tracking events to your own account. 
