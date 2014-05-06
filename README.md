@@ -8,6 +8,8 @@ Integrating App Engine with Google Analytics
 an application, and get a tracking id.
 - Use that tracking id when you are Instantiating a `GoogleAnalyticsTracking` object.
 
+Requires [Apache Maven](http://maven.apache.org) 3.0 or greater, and JDK 7+ in order to run.
+
 To build the library, run
 
     mvn package
@@ -19,8 +21,6 @@ Building will run the tests, but to explicitly run tests you can use the test ta
     mvn test
 
 ## Running the demo
-
-Requires [Apache Maven](http://maven.apache.org) 3.0 or greater, and JDK 7+ in order to run.
 
 - Modify the `tracking.jsp` to use your own tracking id if you wish to test
 tracking events to your own account. 
