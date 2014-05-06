@@ -15,7 +15,7 @@
  */
 
 // [START tracking_code]
-package com.google.appengine.demos.tracking;
+package com.google.appengine.analytics.tracking;
 
 import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPMethod;

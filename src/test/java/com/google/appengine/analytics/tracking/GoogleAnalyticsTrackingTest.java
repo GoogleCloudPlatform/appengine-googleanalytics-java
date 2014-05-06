@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.appengine.demos.tracking;
+package com.google.appengine.analytics.tracking;
 
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;

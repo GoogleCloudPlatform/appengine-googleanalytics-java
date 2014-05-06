@@ -7,11 +7,11 @@
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
 
-    <groupId>com.google.appengine.demos</groupId>
+    <groupId>com.google.appengine.analytics</groupId>
     <artifactId>tracking</artifactId>
 
     <properties>
-        <appengine.app.version>gatracking-java</appengine.app.version>
+        <appengine.app.version>gatracking-demo-java</appengine.app.version>
         <appengine.target.version>1.9.3</appengine.target.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

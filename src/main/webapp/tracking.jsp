@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.google.appengine.demos.tracking.GoogleAnalyticsTracking" %>
+<%@ page import="com.google.appengine.analytics.tracking.GoogleAnalyticsTracking" %>
 
 <html>
 <head>
