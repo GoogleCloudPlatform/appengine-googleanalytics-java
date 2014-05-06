@@ -40,6 +40,11 @@ public class GoogleAnalyticsTracking {
   private static final HTTPHeader CONTENT_TYPE_HEADER =
       new HTTPHeader("Content-Type", "application/x-www-form-urlencoded");
 
+  private String gaTrackingId = null;  // Tracking ID / Web property / Property ID
+  private String gaClientId = "555";   // Anonymous Client ID.
+  // Used to override the existing factory with perhaps a mock one for testing.
+  private URLFetchService urlFetchService = URLFetchServiceFactory.getURLFetchService();
+
   private static URL getGoogleAnalyticsEndpoint() {
     try {
       return new URL("http", "www.google-analytics.com", "/collect");
@@ -48,18 +53,25 @@ public class GoogleAnalyticsTracking {
     }
   }
 
-  private static String gaTrackingId = null;
-
-  public static void setGoogleAnalyticsTrackingId(String newgaTrackingId) {
-    gaTrackingId = newgaTrackingId;
+  public GoogleAnalyticsTracking(String gaTrackingId) throws IOException {
+    if (gaTrackingId == null) {
+      throw new IllegalArgumentException("Can't set gaTrackingId to a null value.");
+    }
+    this.gaTrackingId = gaTrackingId;
   }
 
+  public void setGoogleAnalyticsClientId(String gaClientId) throws IOException {
+    if (gaClientId == null) {
+      throw new IllegalArgumentException("Can't set gaClientId to a null value.");
+    }
+    this.gaClientId = gaClientId;
+  }
 
-  private static URLFetchService urlFetchService = URLFetchServiceFactory.getURLFetchService();
-
-  // Used to override the existing factory with perhaps a mock one for testing.
-  public static void setUrlFetchService(URLFetchService newUrlFetchService) {
-    urlFetchService = newUrlFetchService;
+  public void setUrlFetchService(URLFetchService urlFetchService) throws IOException {
+    if (urlFetchService == null) {
+      throw new IllegalArgumentException("Can't set urlFetchService to a null value.");
+    }
+    this.urlFetchService = urlFetchService;
   }
 
   /**
@@ -72,16 +84,13 @@ public class GoogleAnalyticsTracking {
    * @return true if the call succeeded, otherwise false
    * @exception IOException if the URL could not be posted to
    */
-  public static boolean trackEventToGoogleAnalytics(
+  public boolean trackEventToGoogleAnalytics(
       String category, String action, String label, String value) throws IOException {
-    if (gaTrackingId == null) {
-      throw new IllegalStateException("Null value");
-    }
     Map<String, String> map = new LinkedHashMap<>();
-    map.put("v", "1");                      // Version.
-    map.put("tid", gaTrackingId);           // Tracking ID / Web property / Property ID
-    map.put("cid", "555");                  // Anonymous Client ID.
-    map.put("t", "event");                  // Event hit type.
+    map.put("v", "1");             // Version.
+    map.put("tid", gaTrackingId);
+    map.put("cid", gaClientId);
+    map.put("t", "event");         // Event hit type.
     map.put("ec", encode(category, true));
     map.put("ea", encode(action, true));
     map.put("el", encode(label, false));
@@ -98,7 +107,7 @@ public class GoogleAnalyticsTracking {
     return httpResponse.getResponseCode() == HttpURLConnection.HTTP_OK;
   }
 
-  private static String getPostData(Map<String, String> map) {
+  private String getPostData(Map<String, String> map) {
     StringBuilder sb = new StringBuilder();
     for (Map.Entry<String, String> entry : map.entrySet()) {
       sb.append(entry.getKey());
@@ -112,11 +121,11 @@ public class GoogleAnalyticsTracking {
     return sb.toString();
   }
 
-  private static String encode(String value, boolean required)
+  private String encode(String value, boolean required)
       throws UnsupportedEncodingException {
     if (value == null) {
       if (required) {
-        throw new IllegalArgumentException("Null value");
+        throw new IllegalArgumentException("Required parameter not set.");
       }
       return "";
     }

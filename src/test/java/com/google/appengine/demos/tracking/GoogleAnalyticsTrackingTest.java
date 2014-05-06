@@ -26,10 +26,13 @@ import static junit.framework.Assert.fail;
 import static org.mockito.Mockito.RETURNS_MOCKS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.mockito.ArgumentCaptor;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -39,96 +42,103 @@ import java.nio.charset.StandardCharsets;
 public class GoogleAnalyticsTrackingTest {
 
   private static final String TEST_GA_TRACKING_ID = "UA-XXXX-Y";
+  private URLFetchService mockUrlFetchService;
+  private HTTPResponse mockHTTPResponse;
 
-  @Test
-  public void testTrackEventBasic() throws IOException {
-    HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
-    URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
-    GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
-    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId(TEST_GA_TRACKING_ID);
-
-    when(mockUrlFetchService.fetch(any(HTTPRequest.class))).thenReturn(mockHTTPResponse);
-    when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-
-    assertTrue(GoogleAnalyticsTracking
-        .trackEventToGoogleAnalytics("Error", "Payment", "Amount", "100"));
+  @Before
+  public void setupUrlFetchService() {
+    mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
+    mockHTTPResponse = mock(HTTPResponse.class);
   }
 
   @Test
-  public void testTrackEventVerifyParameters() throws IOException {
+  public void testTrackEventSuccess() throws IOException {
     ArgumentCaptor<HTTPRequest> httpRequestCaptor = ArgumentCaptor.forClass(HTTPRequest.class);
-    HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
-    URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
-    GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
-    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId(TEST_GA_TRACKING_ID);
+    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID);
+    tracking.setUrlFetchService(mockUrlFetchService);
 
     when(mockUrlFetchService.fetch(httpRequestCaptor.capture())).thenReturn(mockHTTPResponse);
     when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
-    assertTrue(GoogleAnalyticsTracking
-        .trackEventToGoogleAnalytics("Error", "Payment", "Amount", "100"));
-    String payload = new String(httpRequestCaptor.getValue().getPayload(),
-        StandardCharsets.UTF_8.name());
+    assertTrue(tracking.trackEventToGoogleAnalytics("Error", "Payment", "Amount", "100"));
+    String payload =
+        new String(httpRequestCaptor.getValue().getPayload(), StandardCharsets.UTF_8.name());
     assertEquals("v=1&tid=UA-XXXX-Y&cid=555&t=event&ec=Error&ea=Payment&el=Amount&ev=100",
         payload);
+    verify(mockUrlFetchService, times(1)).fetch(any(HTTPRequest.class));
   }
 
   @Test
-  public void testTrackEventMissingGATrackingid() throws IOException {
-    HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
-    URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
-    GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
-
-    when(mockUrlFetchService.fetch(any(HTTPRequest.class))).thenReturn(mockHTTPResponse);
-    when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-
+  public void testTrackEventSetNullGATrackingId() throws IOException {
     try {
-      GoogleAnalyticsTracking.trackEventToGoogleAnalytics(null, "Payment", "Amount", "100");
+     GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(null);
       // Should not get here.
       fail();
     }
-    catch (IllegalStateException e) {
-      assertEquals("Null value", e.getMessage());
+    catch (IllegalArgumentException e) {
+      assertEquals("Can't set gaTrackingId to a null value.", e.getMessage());
     }
+    verify(mockUrlFetchService, never()).fetch(any(HTTPRequest.class));
+  }
+
+  @Test
+  public void testTrackEventSetNullGAClientid() throws IOException {
+    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID);
+    tracking.setUrlFetchService(mockUrlFetchService);
+    try {
+      tracking.setGoogleAnalyticsClientId(null);
+      // Should not get here.
+      fail();
+    }
+    catch (IllegalArgumentException e) {
+      assertEquals("Can't set gaClientId to a null value.", e.getMessage());
+    }
+    verify(mockUrlFetchService, never()).fetch(any(HTTPRequest.class));
+  }
+
+  @Test
+  public void testTrackEventSetNullUrlFetchService() throws IOException {
+    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID);
+    try {
+      tracking.setUrlFetchService(null);
+      // Should not get here.
+      fail();
+    }
+    catch (IllegalArgumentException e) {
+      assertEquals("Can't set urlFetchService to a null value.", e.getMessage());
+    }
+    verify(mockUrlFetchService, never()).fetch(any(HTTPRequest.class));
   }
 
   @Test
   public void testTrackEventMissingCategoryParameter() throws IOException {
-    HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
-    URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
-    GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
-    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId(TEST_GA_TRACKING_ID);
-
+    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID);
+    tracking.setUrlFetchService(mockUrlFetchService);
     when(mockUrlFetchService.fetch(any(HTTPRequest.class))).thenReturn(mockHTTPResponse);
-    when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-
     try {
-      GoogleAnalyticsTracking.trackEventToGoogleAnalytics(null, "Payment", "Amount", "100");
+      tracking.trackEventToGoogleAnalytics(null, "Payment", "Amount", "100");
       // Should not get here.
       fail();
     }
     catch (IllegalArgumentException e) {
-      assertEquals("Null value", e.getMessage());
+      assertEquals("Required parameter not set.", e.getMessage());
     }
+    verify(mockUrlFetchService, never()).fetch(any(HTTPRequest.class));
   }
 
   @Test
   public void testTrackEventMissingActionParameter() throws IOException {
-    HTTPResponse mockHTTPResponse = mock(HTTPResponse.class);
-    URLFetchService mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
-    GoogleAnalyticsTracking.setUrlFetchService(mockUrlFetchService);
-    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId(TEST_GA_TRACKING_ID);
-
+    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID);
+    tracking.setUrlFetchService(mockUrlFetchService);
     when(mockUrlFetchService.fetch(any(HTTPRequest.class))).thenReturn(mockHTTPResponse);
-    when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-
     try {
-      GoogleAnalyticsTracking.trackEventToGoogleAnalytics("Error", null, "Amount", "100");
+      tracking.trackEventToGoogleAnalytics("Error", null, "Amount", "100");
       // Should not get here.
       fail();
     }
     catch (IllegalArgumentException e) {
-      assertEquals("Null value", e.getMessage());
+      assertEquals("Required parameter not set.", e.getMessage());
     }
+    verify(mockUrlFetchService, never()).fetch(any(HTTPRequest.class));
   }
 }

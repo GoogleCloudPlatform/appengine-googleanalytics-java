@@ -10,9 +10,12 @@
 
 <%
     // Place your Google Anlaytics tracking id here to test event tracking to your own account.
-    GoogleAnalyticsTracking.setGoogleAnalyticsTrackingId("UA-XXXX-Y");
-    GoogleAnalyticsTracking.trackEventToGoogleAnalytics("Error", "Payment", "Amount", "100");
+    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking("UA-XXXX-Y");
+    if (tracking.trackEventToGoogleAnalytics("Error", "Payment", "Amount", "100")) {
 %>
 <p>Posted a tracking event to Google Analytics.</p>
+<%  } else { %>
+<p>Unable to post a tracking event to Google Analytics.</p>
+<%  } %>
 </body>
 </html>
