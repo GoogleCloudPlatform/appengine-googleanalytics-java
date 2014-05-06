@@ -44,18 +44,19 @@ public class GoogleAnalyticsTrackingTest {
   private static final String TEST_GA_TRACKING_ID = "UA-XXXX-Y";
   private URLFetchService mockUrlFetchService;
   private HTTPResponse mockHTTPResponse;
+  private GoogleAnalyticsTracking tracking;
 
   @Before
-  public void setupUrlFetchService() {
+  public void setupUrlFetchService() throws IOException {
     mockUrlFetchService = mock(URLFetchService.class, RETURNS_MOCKS);
     mockHTTPResponse = mock(HTTPResponse.class);
+    tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID)
+        .setUrlFetchService(mockUrlFetchService);
   }
 
   @Test
   public void testTrackEventSuccess() throws IOException {
     ArgumentCaptor<HTTPRequest> httpRequestCaptor = ArgumentCaptor.forClass(HTTPRequest.class);
-    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID)
-        .setUrlFetchService(mockUrlFetchService);
 
     when(mockUrlFetchService.fetch(httpRequestCaptor.capture())).thenReturn(mockHTTPResponse);
     when(mockHTTPResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
@@ -71,7 +72,7 @@ public class GoogleAnalyticsTrackingTest {
   @Test
   public void testTrackEventSetNullGATrackingId() throws IOException {
     try {
-     GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(null);
+      GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(null);
       // Should not get here.
       fail();
     }
@@ -83,8 +84,6 @@ public class GoogleAnalyticsTrackingTest {
 
   @Test
   public void testTrackEventSetNullGAClientid() throws IOException {
-    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID)
-        .setUrlFetchService(mockUrlFetchService);
     try {
       tracking.setGoogleAnalyticsClientId(null);
       // Should not get here.
@@ -112,8 +111,6 @@ public class GoogleAnalyticsTrackingTest {
 
   @Test
   public void testTrackEventMissingCategoryParameter() throws IOException {
-    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID)
-        .setUrlFetchService(mockUrlFetchService);
     try {
       tracking.trackEventToGoogleAnalytics(null, "Payment", "Amount", "100");
       // Should not get here.
@@ -127,8 +124,6 @@ public class GoogleAnalyticsTrackingTest {
 
   @Test
   public void testTrackEventMissingActionParameter() throws IOException {
-    GoogleAnalyticsTracking tracking = new GoogleAnalyticsTracking(TEST_GA_TRACKING_ID);
-    tracking.setUrlFetchService(mockUrlFetchService);
     try {
       tracking.trackEventToGoogleAnalytics("Error", null, "Amount", "100");
       // Should not get here.

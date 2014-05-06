@@ -40,8 +40,8 @@ public class GoogleAnalyticsTracking {
   private static final HTTPHeader CONTENT_TYPE_HEADER =
       new HTTPHeader("Content-Type", "application/x-www-form-urlencoded");
 
-  private String gaTrackingId = null;  // Tracking ID / Web property / Property ID
-  private String gaClientId = "555";   // Anonymous Client ID.
+  private final String gaTrackingId;  // Tracking ID / Web property / Property ID
+  private String gaClientId = "555";  // Anonymous Client ID.
   // Used to override the existing factory with perhaps a mock one for testing.
   private URLFetchService urlFetchService = URLFetchServiceFactory.getURLFetchService();
 
