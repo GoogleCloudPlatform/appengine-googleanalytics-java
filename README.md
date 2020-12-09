@@ -1,3 +1,9 @@
+![status: inactive](https://img.shields.io/badge/status-inactive-red.svg)
+
+This project is no longer actively developed or maintained.
+
+For new work on this check out [this repository](https://github.com/googleapis/java-analytics-data).
+
 ## appengine-googleanalytics-java
 
 Integrating App Engine with Google Analytics
